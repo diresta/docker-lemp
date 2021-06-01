@@ -1,0 +1,55 @@
+
+version: '3'
+
+networks:
+  lemp:
+    driver: bridge
+    
+services:
+    nginx:
+        image: nginx:latest
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./nginx:/etc/nginx/conf.d
+            - ./www:/var/www
+            - ./logs:/var/log/nginx
+        links:
+            - php
+        networks:
+            - lemp
+    php:
+        build: ./php
+        links:
+            - db
+        volumes:
+            - ./www:/var/www
+        networks:
+            - lemp
+    db:
+        image: mariadb:10.6
+        ports:
+            - "3306:3306"
+        volumes:
+            - ./db:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: root123
+            MYSQL_DATABASE: sitedb
+            MYSQL_USER: testuser
+            MYSQL_PASSWORD: test123
+        networks:
+            - lemp
+    phpmyadmin:
+        image: phpmyadmin:latest
+        restart: always
+        ports:
+            - 8183:80
+        links:
+            - db
+        environment:
+            PMA_HOST: db
+            PMA_USER: testuser
+            PMA_PASSWORD: test123
+        networks:
+            - lemp
